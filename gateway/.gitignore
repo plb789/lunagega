@@ -1,0 +1,17 @@
+# 编译产物
+gateway.exe
+gateway_2008.exe
+
+# 日志文件
+logs/
+*.log
+
+# 配置文件(含敏感token, 首次运行自动生成)
+config.json
+
+# 黑名单持久化数据
+blacklist.json
+
+# IDE
+.vscode/
+.idea/
