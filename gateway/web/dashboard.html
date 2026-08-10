@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="GBK">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网关防护管理平台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1923;--bg2:#1a2836;--bg3:#243447;--border:#2d4154;
+  --text:#c8d6e5;--text2:#8395a7;--accent:#00d2ff;--accent2:#0088cc;
+  --green:#00e676;--red:#ff5252;--yellow:#ffd740;--orange:#ff9100;
+  --sidebar-w:240px
+}
+body{font-family:'Microsoft YaHei','Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+/* 侧边栏 */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-header{padding:20px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:18px;color:var(--accent);font-weight:600}
+.sidebar-header p{font-size:11px;color:var(--text2);margin-top:4px}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;padding:12px 20px;cursor:pointer;color:var(--text2);transition:all 0.2s;border-left:3px solid transparent;font-size:14px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--accent);border-left-color:var(--accent)}
+.nav-item .icon{margin-right:10px;font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:2px 8px;border-radius:8px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
+/* 主区域 */
+.main{flex:1;margin-left:var(--sidebar-w);padding:24px;max-width:calc(100vw - var(--sidebar-w))}
+.page-title{font-size:22px;font-weight:600;margin-bottom:20px;color:var(--text)}
+/* 卡片 */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:18px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-title{font-size:14px;color:var(--text2);font-weight:500}
+.card-value{font-size:28px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--text2)}
+.card-value.green{color:var(--green)}
+.card-value.red{color:var(--red)}
+.card-value.accent{color:var(--accent)}
+.card-value.yellow{color:var(--yellow)}
+/* 面板 */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:20px}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.panel-header h3{font-size:15px;font-weight:600}
+.panel-body{padding:20px}
+.panel-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+/* 表格 */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:12px 14px;font-size:12px;color:var(--text2);border-bottom:2px solid var(--border);font-weight:500;white-space:nowrap}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border)} 
+tr:hover{background:var(--bg3)}
+/* 表单 */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+input,select,textarea{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238395a7'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-inline{display:flex;gap:10px;align-items:flex-end}
+.form-inline .form-group{flex:1;margin-bottom:0}
+/* 按钮 */
+.btn{padding:10px 20px;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00b8e6}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#ff1744}
+.btn-warning{background:var(--orange);color:#000}
+.btn-warning:hover{background:#ff6d00}
+.btn-success{background:var(--green);color:#000}
+.btn-success:hover{background:#00c853}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--bg3)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px;border-radius:4px}
+.btn-group{display:flex;gap:6px}
+/* 状态标签 */
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-green{background:rgba(0,230,118,0.15);color:var(--green)}
+.badge-red{background:rgba(255,82,82,0.15);color:var(--red)}
+.badge-yellow{background:rgba(255,215,64,0.15);color:var(--yellow)}
+.badge-blue{background:rgba(0,210,255,0.15);color:var(--accent)}
+/* 提示 */
+.alert{padding:12px 16px;border-radius:6px;font-size:13px;margin-bottom:14px}
+.alert-info{background:rgba(0,210,255,0.1);border:1px solid rgba(0,210,255,0.2);color:var(--accent)}
+.alert-success{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green)}
+.alert-error{background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.2);color:var(--red)}
+.alert-warning{background:rgba(255,215,64,0.1);border:1px solid rgba(255,215,64,0.2);color:var(--yellow)}
+.msg{font-size:12px;margin-top:8px;min-height:18px}
+.msg.error{color:var(--red)}
+.msg.success{color:var(--green)}
+/* 进度条 */
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.progress-fill.green{background:var(--green)}
+.progress-fill.red{background:var(--red)}
+.progress-fill.accent{background:var(--accent)}
+/* Tab切换 */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.tab{padding:10px 18px;cursor:pointer;color:var(--text2);font-size:13px;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* 开关 */
+.switch{position:relative;display:inline-block;width:44px;height:24px}
+.switch input{display:none}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bg3);border-radius:24px;transition:0.3s}
+.slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:var(--text2);border-radius:50%;transition:0.3s}
+input:checked+.slider{background:var(--accent)}
+input:checked+.slider:before{background:#000;transform:translateX(20px)}
+/* 复选框行 */
+.check-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.check-row label{font-size:13px;cursor:pointer}
+/* 隐藏页面 */
+.page{display:none}
+.page.active{display:block}
+/* 日志区 */
+.log-area{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:12px;max-height:300px;overflow-y:auto;white-space:pre-wrap;color:var(--text2);line-height:1.6}
+/* 响应式 */
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-header h1,.sidebar-header p,.nav-item span:not(.icon),.sidebar-footer,.nav-badge{display:none}
+  .nav-item{justify-content:center;padding:14px}
+  .nav-item .icon{margin-right:0}
+  .main{margin-left:60px;padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+}
+/* API地址栏 */
+.api-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border-radius:6px;margin-bottom:16px;font-size:12px}
+.api-bar input{flex:1;padding:6px 10px;font-size:12px}
+.api-bar .btn{padding:6px 12px;font-size:12px}
+/* ===== 自定义滚动条 ===== */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg);border-radius:4px}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--bg3),var(--border));border-radius:4px;border:1px solid rgba(255,255,255,0.05)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--accent2),var(--accent))}
+::-webkit-scrollbar-corner{background:var(--bg)}
+*{scrollbar-width:thin;scrollbar-color:var(--bg3) var(--bg)}
+/* 为日志区域和表格区域独立滚动条 */
+.log-area::-webkit-scrollbar-thumb,.table-wrap::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#1a3a4a,#2d4154)}
+/* ===== 数字输入框上下按钮样式 ===== */
+input[type=number]::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  height:28px;width:24px;
+  background-color:var(--bg3);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='24'%3E%3Cpath d='M7 3l5 7H2z' fill='%238395a7'/%3E%3Cpath d='M2 14l5 7 5-7z' fill='%238395a7'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:14px 24px;
+  border-left:1px solid var(--border);
+  cursor:pointer;opacity:0.85;transition:all 0.15s
+}
+input[type=number]::-webkit-inner-spin-button:hover{
+  opacity:1;
+  background-color:var(--accent2);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='24'%3E%3Cpath d='M7 3l5 7H2z' fill='%23000'/%3E%3Cpath d='M2 14l5 7 5-7z' fill='%23000'/%3E%3C/svg%3E")
+}
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;display:none}
+input[type=number]{-moz-appearance:textfield}
+</style>
+</head>
+<body>
+
+<!-- 侧边导航 -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>网关防护</h1>
+    <p>Gateway Manager v1.0</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span>仪表盘</div>
+    <div class="nav-item" data-page="ratelimit"><span class="icon">⏱</span>频率限制</div>
+    <div class="nav-item" data-page="blacklist"><span class="icon">🚫</span>黑名单<span class="nav-badge" id="bl-count">0</span></div>
+    <div class="nav-item" data-page="whitelist"><span class="icon">✅</span>白名单</div>
+    <div class="nav-item" data-page="traffic"><span class="icon">📶</span>流量控制</div>
+    <div class="nav-item" data-page="health"><span class="icon">💚</span>健康检查</div>
+    <div class="nav-item" data-page="log"><span class="icon">📋</span>日志分析</div>
+    <div class="nav-item" data-page="config"><span class="icon">⚙</span>系统配置</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div id="conn-status" style="color:var(--green)">● 已连接</div>
+    <div>刷新: <span id="refresh-timer">0s</span>前</div>
+  </div>
+</aside>
+
+<!-- 主内容区 -->
+<main class="main">
+
+  <!-- API地址栏 -->
+  <div class="api-bar">
+    <span>API:</span>
+    <input id="api-base" value="/api" placeholder="API基础路径">
+    <span>Token:</span>
+    <input id="api-token" value="admin-token-change-me" placeholder="认证Token" style="max-width:180px">
+    <button class="btn btn-outline btn-sm" onclick="refreshAll()">刷新全部</button>
+    <span id="api-status" style="font-size:11px;color:var(--green)">● 已连接</span>
+  </div>
+
+  <!-- ==================== 仪表盘页面 ==================== -->
+  <div class="page active" id="page-dashboard">
+    <h2 class="page-title">系统仪表盘</h2>
+    
+    <div class="cards" id="stats-cards">
+      <div class="card">
+        <div class="card-header"><span class="card-title">运行时间</span></div>
+        <div class="card-value accent" id="stat-uptime">--</div>
+        <div class="card-desc">服务运行时长</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">总连接数</span></div>
+        <div class="card-value green" id="stat-total-conns">0</div>
+        <div class="card-desc" id="stat-conn-rate">0 conn/s</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">活跃连接</span></div>
+        <div class="card-value" style="color:var(--yellow)" id="stat-active-conns">0</div>
+        <div class="card-desc">当前活跃连接数</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">拒绝连接</span></div>
+        <div class="card-value red" id="stat-total-rejects">0</div>
+        <div class="card-desc" id="stat-reject-rate">0 reject/s</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">接收流量</span></div>
+        <div class="card-value" style="color:var(--text)" id="stat-bytes-read">0 MB</div>
+        <div class="card-desc" id="stat-read-rate">0 KB/s</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">发送流量</span></div>
+        <div class="card-value" style="color:var(--text)" id="stat-bytes-write">0 MB</div>
+        <div class="card-desc" id="stat-write-rate">0 KB/s</div>
+      </div>
+    </div>
+
+    <!-- 端口转发统计 -->
+    <div class="panel">
+      <div class="panel-header"><h3>端口转发状态</h3></div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>监听地址</th><th>总连接</th><th>活跃连接</th><th>拒绝数</th><th>接收流量</th><th>发送流量</th></tr>
+      </thead><tbody id="port-stats-body"><tr><td colspan="6" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+
+    <!-- 奔溃预警 - 后端健康状态 -->
+    <div class="panel">
+      <div class="panel-header"><h3>🛡 奔溃预警 · 后端健康状态</h3><span style="font-size:12px;color:var(--text2)">基于AG协议嗅探 | 5s刷新</span></div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>监听端口</th><th>后端地址</th><th>登录次数</th><th>登录成功</th><th>登录NACK</th><th>失败率</th><th>超时断开</th><th>健康状态</th></tr>
+      </thead><tbody id="backend-health-body"><tr><td colspan="8" style="text-align:center;color:var(--text2)">等待数据...</td></tr></tbody></table></div></div>
+    </div>
+
+    <!-- 活跃IP频率 -->
+    <div class="panel" id="panel-active-ips">
+      <div class="panel-header"><h3>活跃连接IP (Top 20)</h3></div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>IP地址</th><th>当前频率(次/秒)</th><th>操作</th></tr>
+      </thead><tbody id="active-ips-body"><tr><td colspan="3" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+
+    <!-- 攻击者Top -->
+    <div class="panel">
+      <div class="panel-header"><h3>攻击者排行 (Top 20)</h3></div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>#</th><th>IP地址</th><th>被拒绝次数</th><th>操作</th></tr>
+      </thead><tbody id="top-attackers-body"><tr><td colspan="4" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ==================== 频率限制页面 ==================== -->
+  <div class="page" id="page-ratelimit">
+    <h2 class="page-title">频率限制管理</h2>
+
+    <div class="panel">
+      <div class="panel-header"><h3>IP频率限制</h3></div>
+      <div class="panel-body">
+        <div class="check-row">
+          <label class="switch"><input type="checkbox" id="rl-ip-enable" checked onchange="saveRateLimit()"><span class="slider"></span></label>
+          <label>启用IP频率限制</label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>每秒最大连接数</label>
+            <input type="number" id="rl-ip-conn" value="10" min="1" max="1000" onchange="saveRateLimit()">
+          </div>
+          <div class="form-group">
+            <label>每秒最大登录数</label>
+            <input type="number" id="rl-ip-login" value="3" min="1" max="100" onchange="saveRateLimit()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>UID频率限制</h3></div>
+      <div class="panel-body">
+        <div class="check-row">
+          <label class="switch"><input type="checkbox" id="rl-uid-enable" checked onchange="saveRateLimit()"><span class="slider"></span></label>
+          <label>启用UID频率限制</label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>每秒最大连接数</label>
+            <input type="number" id="rl-uid-conn" value="5" min="1" max="1000" onchange="saveRateLimit()">
+          </div>
+          <div class="form-group">
+            <label>每秒最大登录数</label>
+            <input type="number" id="rl-uid-login" value="2" min="1" max="100" onchange="saveRateLimit()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>IP+UID组合限制</h3></div>
+      <div class="panel-body">
+        <div class="check-row">
+          <label class="switch"><input type="checkbox" id="rl-combined-enable" checked onchange="saveRateLimit()"><span class="slider"></span></label>
+          <label>启用IP+UID组合频率限制</label>
+        </div>
+        <div class="form-group">
+          <label>每秒最大连接数</label>
+          <input type="number" id="rl-combined-conn" value="3" min="1" max="500" onchange="saveRateLimit()">
+        </div>
+        <div class="msg" id="ratelimit-msg"></div>
+      </div>
+    </div>
+
+    <!-- 重置频率 -->
+    <div class="panel">
+      <div class="panel-header"><h3>重置频率限制</h3></div>
+      <div class="panel-body">
+        <div class="form-inline">
+          <div class="form-group">
+            <label>类型</label>
+            <select id="reset-type"><option value="ip">IP</option><option value="uid">UID</option></select>
+          </div>
+          <div class="form-group">
+            <label>值</label>
+            <input id="reset-value" placeholder="输入IP或UID">
+          </div>
+          <div class="form-group" style="flex:0">
+            <button class="btn btn-warning" onclick="resetRateLimit()">重置</button>
+          </div>
+        </div>
+        <div class="msg" id="reset-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 黑名单页面 ==================== -->
+  <div class="page" id="page-blacklist">
+    <h2 class="page-title">黑名单管理</h2>
+
+    <div class="panel">
+      <div class="panel-header"><h3>添加黑名单</h3></div>
+      <div class="panel-body">
+        <div class="tabs">
+          <div class="tab active" onclick="switchBLTab('ip')">IP黑名单</div>
+          <div class="tab" onclick="switchBLTab('uid')">UID黑名单</div>
+          <div class="tab" onclick="switchBLTab('combined')">组合黑名单</div>
+        </div>
+
+        <div class="tab-content active" id="bl-tab-ip">
+          <div class="form-inline">
+            <div class="form-group"><label>IP地址</label><input id="bl-add-ip" placeholder="例如: 192.168.1.100"></div>
+            <div class="form-group"><label>封禁原因</label><input id="bl-add-reason" placeholder="封禁原因"></div>
+            <div class="form-group" style="flex:0"><label>&nbsp;</label><button class="btn btn-danger" onclick="addBlacklist('ip')">添加封禁</button></div>
+          </div>
+        </div>
+        <div class="tab-content" id="bl-tab-uid">
+          <div class="form-inline">
+            <div class="form-group"><label>UID</label><input type="number" id="bl-add-uid" placeholder="用户ID"></div>
+            <div class="form-group"><label>封禁原因</label><input id="bl-add-uid-reason" placeholder="封禁原因"></div>
+            <div class="form-group" style="flex:0"><label>&nbsp;</label><button class="btn btn-danger" onclick="addBlacklist('uid')">添加封禁</button></div>
+          </div>
+        </div>
+        <div class="tab-content" id="bl-tab-combined">
+          <div class="form-inline">
+            <div class="form-group"><label>IP地址</label><input id="bl-add-cip" placeholder="IP地址"></div>
+            <div class="form-group"><label>UID</label><input type="number" id="bl-add-cuid" placeholder="用户ID"></div>
+            <div class="form-group"><label>原因</label><input id="bl-add-creason" placeholder="封禁原因"></div>
+            <div class="form-group" style="flex:0"><label>&nbsp;</label><button class="btn btn-danger" onclick="addBlacklist('combined')">添加封禁</button></div>
+          </div>
+        </div>
+        <div class="msg" id="bl-add-msg"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>IP黑名单列表</h3>
+        <div class="btn-group">
+          <button class="btn btn-outline btn-sm" onclick="loadBlacklist()">刷新</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllBlacklist()">清空全部</button>
+        </div>
+      </div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>IP地址</th><th>原因</th><th>来源</th><th>加入时间</th><th>过期时间</th><th>操作</th></tr>
+      </thead><tbody id="bl-ip-body"><tr><td colspan="6" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>UID黑名单列表</h3></div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>UID</th><th>原因</th><th>来源</th><th>加入时间</th><th>操作</th></tr>
+      </thead><tbody id="bl-uid-body"><tr><td colspan="5" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ==================== 白名单页面 ==================== -->
+  <div class="page" id="page-whitelist">
+    <h2 class="page-title">白名单管理</h2>
+
+    <div class="panel">
+      <div class="panel-header"><h3>添加IP白名单</h3></div>
+      <div class="panel-body">
+        <div class="form-inline">
+          <div class="form-group"><label>IP地址</label><input id="wl-add-ip" placeholder="例如: 10.0.0.1"></div>
+          <div class="form-group"><label>备注</label><input id="wl-add-note" placeholder="例如: 内部管理IP"></div>
+          <div class="form-group" style="flex:0"><label>&nbsp;</label><button class="btn btn-success" onclick="addWhitelist()">添加白名单</button></div>
+        </div>
+        <div class="msg" id="wl-add-msg"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>白名单列表</h3>
+        <button class="btn btn-outline btn-sm" onclick="loadWhitelist()">刷新</button>
+      </div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>IP地址</th><th>备注</th><th>加入时间</th></tr>
+      </thead><tbody id="wl-body"><tr><td colspan="3" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ==================== 流量控制页面 ==================== -->
+  <div class="page" id="page-traffic">
+    <h2 class="page-title">流量控制</h2>
+
+    <div class="panel">
+      <div class="panel-header"><h3>限速配置</h3></div>
+      <div class="panel-body">
+        <div class="check-row">
+          <label class="switch"><input type="checkbox" id="tc-enable" checked onchange="saveTrafficControl()"><span class="slider"></span></label>
+          <label>启用流量限速 (令牌桶算法)</label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>每连接最大速率 (KB/s)</label>
+            <input type="number" id="tc-max-rate" value="1024" min="1" max="1048576" onchange="saveTrafficControl()">
+          </div>
+          <div class="form-group">
+            <label>突发流量大小 (KB)</label>
+            <input type="number" id="tc-burst" value="2048" min="1" max="1048576" onchange="saveTrafficControl()">
+          </div>
+        </div>
+        <div class="msg" id="tc-msg"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>令牌桶算法说明</h3></div>
+      <div class="panel-body" style="color:var(--text2);font-size:13px;line-height:1.8">
+        <p>令牌桶算法以恒定速率向桶中添加令牌，每个数据包传输前需要从桶中获取令牌。</p>
+        <p><strong>最大速率</strong> - 令牌生成速率，即最大允许传输速率</p>
+        <p><strong>突发流量</strong> - 桶容量，允许短期突发超过限制速率</p>
+        <p>当前配置: 速率 <span id="tc-display-rate" style="color:var(--accent)">1024 KB/s</span>, 突发 <span id="tc-display-burst" style="color:var(--accent)">2048 KB</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 健康检查页面 ==================== -->
+  <div class="page" id="page-health">
+    <h2 class="page-title">后端健康检查</h2>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>后端服务器状态</h3>
+        <button class="btn btn-outline btn-sm" onclick="loadHealth()">刷新</button>
+      </div>
+      <div class="panel-body"><div class="table-wrap"><table><thead>
+        <tr><th>后端地址</th><th>状态</th><th>总连接</th><th>活跃连接</th><th>失败次数</th><th>最后检查</th></tr>
+      </thead><tbody id="health-body"><tr><td colspan="6" style="text-align:center;color:var(--text2)">加载中...</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ==================== 日志分析页面 ==================== -->
+  <div class="page" id="page-log">
+    <h2 class="page-title">日志分析</h2>
+
+    <div class="panel">
+      <div class="panel-header"><h3>上传LoginError.txt进行分析</h3></div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label>选择日志文件 (.txt)</label>
+          <input type="file" id="log-file" accept=".txt" style="padding:8px">
+        </div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px">也可以直接粘贴日志内容：</p>
+        <textarea id="log-content" placeholder="粘贴日志内容...&#10;例如:&#10;[2026-08-10 17:11:49]  [state : 4 , UserIdx : 343]"></textarea>
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" onclick="analyzeLog()">开始分析</button>
+          <button class="btn btn-outline" onclick="quickAnalyze()" style="margin-left:8px">演示分析(使用示例数据)</button>
+        </div>
+        <div class="msg" id="log-msg"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="log-result-panel" style="display:none">
+      <div class="panel-header"><h3>分析结果</h3></div>
+      <div class="panel-body"><div id="log-result"></div></div>
+    </div>
+  </div>
+
+  <!-- ==================== 系统配置页面 ==================== -->
+  <div class="page" id="page-config">
+    <h2 class="page-title">系统配置</h2>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>当前配置 (JSON)</h3>
+        <button class="btn btn-outline btn-sm" onclick="loadConfig()">刷新</button>
+      </div>
+      <div class="panel-body">
+        <textarea id="config-json" style="min-height:400px;font-family:'Courier New',monospace;font-size:12px" readonly>加载中...</textarea>
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-warning" onclick="reloadConfig()">重新加载配置</button>
+        <span style="font-size:11px;color:var(--text2);margin-left:8px">注: 部分配置需重启生效</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ==================== 全局状态 ====================
+var apiBase = '/api';
+var apiToken = 'admin-token-change-me';
+var refreshTimer = null;
+var lastRefresh = Date.now();
+var currentPage = 'dashboard';
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', function(){
+  // 从localStorage加载配置
+  var savedApi = localStorage.getItem('gw-api-base');
+  var savedToken = localStorage.getItem('gw-api-token');
+  if(savedApi) { apiBase = savedApi; document.getElementById('api-base').value = savedApi; }
+  if(savedToken) { apiToken = savedToken; document.getElementById('api-token').value = savedToken; }
+
+  // 监听API地址变化
+  document.getElementById('api-base').addEventListener('change', function(){
+    apiBase = this.value; localStorage.setItem('gw-api-base', apiBase); refreshAll();
+  });
+  document.getElementById('api-token').addEventListener('change', function(){
+    apiToken = this.value; localStorage.setItem('gw-api-token', apiToken); refreshAll();
+  });
+
+  // 侧边导航点击
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+      this.classList.add('active');
+      var page = this.dataset.page;
+      switchPage(page);
+    });
+  });
+
+  // 启动自动刷新
+  startAutoRefresh();
+  refreshAll();
+});
+
+// ==================== API调用 ====================
+function apiUrl(path) {
+  var sep = path.indexOf('?') >= 0 ? '&' : '?';
+  return apiBase + path + sep + 'token=' + encodeURIComponent(apiToken);
+}
+
+function apiGet(path) {
+  return fetch(apiUrl(path), {
+    headers: { 'Authorization': 'Bearer ' + apiToken }
+  }).then(function(r){ return r.json(); }).catch(function(e){
+    console.error('API Error:', e);
+    return { code: -1, message: '连接失败: ' + e.message };
+  });
+}
+
+function apiPost(path, data) {
+  return fetch(apiUrl(path), {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + apiToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function(r){ return r.json(); }).catch(function(e){
+    return { code: -1, message: '请求失败: ' + e.message };
+  });
+}
+
+// ==================== 页面切换 ====================
+function switchPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('page-' + page).classList.add('active');
+
+  switch(page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'ratelimit': loadRateLimitConfig(); break;
+    case 'blacklist': loadBlacklist(); break;
+    case 'whitelist': loadWhitelist(); break;
+    case 'traffic': loadTrafficConfig(); break;
+    case 'health': loadHealth(); break;
+    case 'log': break;
+    case 'config': loadConfig(); break;
+  }
+}
+
+// ==================== 自动刷新 ====================
+function startAutoRefresh() {
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(function(){
+    if(currentPage === 'dashboard') loadDashboard();
+    document.getElementById('refresh-timer').textContent = Math.floor((Date.now() - lastRefresh) / 1000) + 's';
+  }, 5000);
+}
+
+function refreshAll() {
+  lastRefresh = Date.now();
+  document.getElementById('refresh-timer').textContent = '0s';
+  switchPage(currentPage);
+}
+
+// ==================== 仪表盘 ====================
+function loadDashboard() {
+  lastRefresh = Date.now();
+
+  apiGet('/status').then(function(data){
+    if(!data || data.code !== 200) {
+      document.getElementById('api-status').innerHTML = '<span style="color:var(--red)">● 离线</span>';
+      return;
+    }
+    document.getElementById('api-status').innerHTML = '<span style="color:var(--green)">● 已连接</span>';
+    document.getElementById('conn-status').innerHTML = '<span style="color:var(--green)">● 已连接</span>';
+
+    var g = data.data ? (data.data.global || data.data) : {};
+
+    // 更新统计卡片
+    // uptime_seconds 优先从顶层取（Go层专门添加的秒数值），其次从global内部
+    var rawUptime = (data.data && data.data.uptime_seconds) || g.uptime_seconds;
+    if (!rawUptime) {
+      // 兼容 fallback: g.Uptime 是 time.Duration 的纳秒值，需除以1e9转秒
+      rawUptime = typeof g.Uptime === 'number' ? Math.floor(g.Uptime / 1e9) : 0;
+    }
+    var h = Math.floor(rawUptime / 3600);
+    var m = Math.floor((rawUptime % 3600) / 60);
+    var s = Math.floor(rawUptime % 60);
+    document.getElementById('stat-uptime').textContent = h + 'h ' + m + 'm ' + s + 's';
+
+    var tc = g.total_conns || g.TotalConns || 0;
+    document.getElementById('stat-total-conns').textContent = formatNum(tc);
+    document.getElementById('stat-conn-rate').textContent = (g.conn_per_sec || g.ConnPerSec || 0).toFixed(1) + ' conn/s';
+
+    document.getElementById('stat-active-conns').textContent = formatNum(g.active_conns || g.ActiveConns || 0);
+    document.getElementById('stat-total-rejects').textContent = formatNum(g.total_rejects || g.TotalRejects || 0);
+    document.getElementById('stat-reject-rate').textContent = (g.reject_per_sec || g.RejectPerSec || 0).toFixed(1) + ' reject/s';
+
+    var br = g.total_bytes_read || g.TotalBytesRead || 0;
+    var bw = g.total_bytes_write || g.TotalBytesWrite || 0;
+    document.getElementById('stat-bytes-read').textContent = (br / 1048576).toFixed(2) + ' MB';
+    document.getElementById('stat-bytes-write').textContent = (bw / 1048576).toFixed(2) + ' MB';
+    document.getElementById('stat-read-rate').textContent = ((g.bytes_read_per_sec || g.BytesReadPerSec || 0) / 1024).toFixed(1) + ' KB/s';
+    document.getElementById('stat-write-rate').textContent = ((g.bytes_write_per_sec || g.BytesWritePerSec || 0) / 1024).toFixed(1) + ' KB/s';
+
+    // 端口统计
+    var ports = data.data.ports || data.data.Ports || [];
+    var psHtml = '';
+    if(ports.length === 0) {
+      psHtml = '<tr><td colspan="6" style="text-align:center;color:var(--text2)">暂无数据</td></tr>';
+    } else {
+      ports.forEach(function(p){
+        psHtml += '<tr>' +
+          '<td>' + esc(p.listen_addr || p.ListenAddr) + '</td>' +
+          '<td>' + formatNum(p.total_conns || p.TotalConns) + '</td>' +
+          '<td>' + formatNum(p.active_conns || p.ActiveConns) + '</td>' +
+          '<td style="color:var(--red)">' + formatNum(p.total_rejects || p.TotalRejects) + '</td>' +
+          '<td>' + ((p.total_bytes_read || p.TotalBytesRead || 0) / 1048576).toFixed(2) + ' MB</td>' +
+          '<td>' + ((p.total_bytes_write || p.TotalBytesWrite || 0) / 1048576).toFixed(2) + ' MB</td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('port-stats-body').innerHTML = psHtml;
+  });
+
+  // 奔溃预警 - 后端健康状态 (协议层嗅探)
+  apiGet('/protocol/stats').then(function(data){
+    if(!data || data.code !== 200) return;
+    var stats = data.data || [];
+    var html = '';
+    if(stats.length === 0) {
+      html = '<tr><td colspan="8" style="text-align:center;color:var(--text2)">暂无协议统计数据(需要活跃连接)</td></tr>';
+    } else {
+      stats.forEach(function(s){
+        var healthColor = 'var(--green)';
+        if(s.health_code === 1) healthColor = 'var(--yellow)';           // 降级
+        else if(s.health_code === 2) healthColor = 'var(--red)';         // 危险
+        else if(s.health_code === 3) healthColor = '#ff1744';            // 宕机
+        var nackStyle = (s.total_login_nacks > 0) ? 'color:' + healthColor + ';font-weight:bold' : '';
+
+        html += '<tr>' +
+          '<td>' + esc(s.listen_addr) + '</td>' +
+          '<td>' + esc(s.backend_addr) + '</td>' +
+          '<td>' + formatNum(s.total_logins) + '</td>' +
+          '<td>' + formatNum(s.total_login_acks) + '</td>' +
+          '<td style="' + nackStyle + '">' + formatNum(s.total_login_nacks) + '</td>' +
+          '<td style="' + nackStyle + '">' + s.login_fail_rate + '</td>' +
+          '<td>' + formatNum(s.backend_timeouts) + '</td>' +
+          '<td><span style="color:' + healthColor + ';font-weight:bold">' + s.health + '</span></td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('backend-health-body').innerHTML = html;
+  });
+
+  // 活跃IP
+  apiGet('/ratelimit/active').then(function(data){
+    if(!data || data.code !== 200) return;
+    var ips = data.data.active_ips || data.data.ActiveIPs || {};
+    var entries = [];
+    for(var ip in ips) entries.push({ip: ip, count: ips[ip]});
+    entries.sort(function(a,b){ return b.count - a.count; });
+    entries = entries.slice(0, 20);
+
+    var html = '';
+    if(entries.length === 0) {
+      html = '<tr><td colspan="3" style="text-align:center;color:var(--text2)">暂无活跃连接</td></tr>';
+    } else {
+      entries.forEach(function(e){
+        var pct = Math.min(100, e.count / 50 * 100);
+        html += '<tr>' +
+          '<td>' + esc(e.ip) + '</td>' +
+          '<td><div class="progress-bar" style="margin-top:0"><div class="progress-fill '+(e.count>20?'red':'accent')+'" style="width:'+pct+'%"></div></div> ' + e.count + '次/秒</td>' +
+          '<td><button class="btn btn-danger btn-xs" onclick="quickBanIP(\'' + esc(e.ip) + '\')">封禁</button> ' +
+          '<button class="btn btn-outline btn-xs" onclick="quickResetIP(\'' + esc(e.ip) + '\')">重置</button></td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('active-ips-body').innerHTML = html;
+  });
+
+  // 攻击者排行
+  apiGet('/analysis/top-attackers').then(function(data){
+    if(!data || data.code !== 200) return;
+    var attackers = data.data || [];
+    var html = '';
+    if(attackers.length === 0) {
+      html = '<tr><td colspan="4" style="text-align:center;color:var(--text2)">暂无攻击记录</td></tr>';
+    } else {
+      attackers.forEach(function(a, i){
+        html += '<tr>' +
+          '<td>' + (i+1) + '</td>' +
+          '<td>' + esc(a.IP || a.ip) + '</td>' +
+          '<td style="color:var(--red)">' + (a.Rejects || a.rejects || 0) + '</td>' +
+          '<td><button class="btn btn-danger btn-xs" onclick="quickBanIP(\'' + esc(a.IP||a.ip) + '\')">封禁</button></td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('top-attackers-body').innerHTML = html;
+  });
+}
+
+// ==================== 频率限制 ====================
+function loadRateLimitConfig() {
+  apiGet('/config').then(function(data){
+    if(!data || data.code !== 200 || !data.data) return;
+    var rl = data.data.rate_limit || data.data.RateLimit || {};
+    document.getElementById('rl-ip-enable').checked = rl.enable_ip_limit || rl.EnableIPLimit;
+    document.getElementById('rl-ip-conn').value = rl.ip_max_conn_per_sec || rl.IPMaxConnPerSec || 10;
+    document.getElementById('rl-ip-login').value = rl.ip_max_login_per_sec || rl.IPMaxLoginPerSec || 3;
+    document.getElementById('rl-uid-enable').checked = rl.enable_uid_limit || rl.EnableUIDLimit;
+    document.getElementById('rl-uid-conn').value = rl.uid_max_conn_per_sec || rl.UIDMaxConnPerSec || 5;
+    document.getElementById('rl-uid-login').value = rl.uid_max_login_per_sec || rl.UIDMaxLoginPerSec || 2;
+    document.getElementById('rl-combined-enable').checked = rl.enable_combined_limit || rl.EnableCombinedLimit;
+    document.getElementById('rl-combined-conn').value = rl.combined_max_conn_per_sec || rl.CombinedMaxConnPerSec || 3;
+  });
+}
+
+function saveRateLimit() {
+  showMsg('ratelimit-msg', '保存中... (配置修改需更新配置文件)', 'info');
+  // 注: 实时修改频率限制需要额外的API支持或配置重载
+  setTimeout(function(){ showMsg('ratelimit-msg', '配置已记录，部分修改需重启或通过API重新加载生效', 'info'); }, 500);
+}
+
+function resetRateLimit() {
+  var type = document.getElementById('reset-type').value;
+  var value = document.getElementById('reset-value').value.trim();
+  if(!value) { showMsg('reset-msg', '请输入IP或UID', 'error'); return; }
+
+  apiPost('/ratelimit/reset', { type: type, ip: type==='ip'?value:'', uid: type==='uid'?parseInt(value):0 }).then(function(r){
+    if(r.code === 200) {
+      showMsg('reset-msg', '重置成功', 'success');
+      document.getElementById('reset-value').value = '';
+    } else {
+      showMsg('reset-msg', '重置失败: ' + r.message, 'error');
+    }
+  });
+}
+
+// ==================== 黑名单 ====================
+var blTab = 'ip';
+function switchBLTab(tab) {
+  blTab = tab;
+  document.querySelectorAll('#page-blacklist .tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('#page-blacklist .tab-content').forEach(function(c){ c.classList.remove('active'); });
+  event.target.classList.add('active');
+  document.getElementById('bl-tab-' + tab).classList.add('active');
+}
+
+function addBlacklist(type) {
+  var data = { type: type, reason: '手动封禁' };
+  if(type === 'ip') {
+    data.ip = document.getElementById('bl-add-ip').value.trim();
+    data.reason = document.getElementById('bl-add-reason').value.trim() || '手动封禁';
+    if(!data.ip) { showMsg('bl-add-msg', '请输入IP', 'error'); return; }
+  } else if(type === 'uid') {
+    data.uid = parseInt(document.getElementById('bl-add-uid').value);
+    data.reason = document.getElementById('bl-add-uid-reason').value.trim() || '手动封禁';
+    if(!data.uid) { showMsg('bl-add-msg', '请输入UID', 'error'); return; }
+  } else {
+    data.ip = document.getElementById('bl-add-cip').value.trim();
+    data.uid = parseInt(document.getElementById('bl-add-cuid').value);
+    data.reason = document.getElementById('bl-add-creason').value.trim() || '手动封禁';
+    if(!data.ip || !data.uid) { showMsg('bl-add-msg', '请输入IP和UID', 'error'); return; }
+  }
+
+  apiPost('/blacklist/add', data).then(function(r){
+    if(r.code === 200) {
+      showMsg('bl-add-msg', '添加成功', 'success');
+      loadBlacklist();
+      // 清空表单
+      if(type === 'ip') { document.getElementById('bl-add-ip').value = ''; document.getElementById('bl-add-reason').value = ''; }
+      else if(type === 'uid') { document.getElementById('bl-add-uid').value = ''; document.getElementById('bl-add-uid-reason').value = ''; }
+      else { document.getElementById('bl-add-cip').value = ''; document.getElementById('bl-add-cuid').value = ''; document.getElementById('bl-add-creason').value = ''; }
+    } else {
+      showMsg('bl-add-msg', '添加失败: ' + r.message, 'error');
+    }
+  });
+}
+
+function loadBlacklist() {
+  lastRefresh = Date.now();
+  apiGet('/blacklist').then(function(data){
+    if(!data || data.code !== 200) return;
+
+    var ipList = data.data.ip_blacklist || data.data.IpBlacklist || [];
+    var uidList = data.data.uid_blacklist || data.data.UidBlacklist || [];
+
+    // 更新黑名单数量
+    var total = ipList.length + uidList.length;
+    document.getElementById('bl-count').textContent = total;
+
+    // IP黑名单表格
+    var ipHtml = '';
+    if(ipList.length === 0) {
+      ipHtml = '<tr><td colspan="6" style="text-align:center;color:var(--text2)">暂无记录</td></tr>';
+    } else {
+      ipList.forEach(function(entry){
+        var exp = entry.expire_time || entry.ExpireTime || '';
+        var added = entry.added_time || entry.AddedTime || '';
+        var ip = entry.IP || entry.ip;
+        ipHtml += '<tr>' +
+          '<td><code style="color:var(--red)">' + esc(ip) + '</code></td>' +
+          '<td>' + esc(entry.Reason || entry.reason) + '</td>' +
+          '<td><span class="badge ' + ((entry.Source || entry.source) === 'auto' ? 'badge-yellow' : 'badge-blue') + '">' + esc(entry.Source || entry.source) + '</span></td>' +
+          '<td>' + esc(added) + '</td>' +
+          '<td>' + (exp ? esc(exp) : '<span style="color:var(--red)">永久</span>') + '</td>' +
+          '<td><button class="btn btn-danger btn-xs" onclick="removeBlacklist(\'ip\',\'' + esc(ip) + '\',0)">移除</button></td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('bl-ip-body').innerHTML = ipHtml;
+
+    // UID黑名单表格
+    var uidHtml = '';
+    if(uidList.length === 0) {
+      uidHtml = '<tr><td colspan="5" style="text-align:center;color:var(--text2)">暂无记录</td></tr>';
+    } else {
+      uidList.forEach(function(entry){
+        var uid = entry.UID || entry.uid;
+        uidHtml += '<tr>' +
+          '<td><code style="color:var(--red)">' + uid + '</code></td>' +
+          '<td>' + esc(entry.Reason || entry.reason) + '</td>' +
+          '<td><span class="badge badge-yellow">' + esc(entry.Source || entry.source) + '</span></td>' +
+          '<td>' + esc(entry.AddedTime || entry.added_time || '') + '</td>' +
+          '<td><button class="btn btn-danger btn-xs" onclick="removeBlacklist(\'uid\',\'\',\'' + uid + '\')">移除</button></td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('bl-uid-body').innerHTML = uidHtml;
+  });
+}
+
+function removeBlacklist(type, ip, uid) {
+  apiPost('/blacklist/remove', { type: type, ip: ip, uid: parseInt(uid) }).then(function(r){
+    if(r.code === 200) loadBlacklist();
+    else alert('移除失败: ' + r.message);
+  });
+}
+
+function clearAllBlacklist() {
+  if(!confirm('确定要清空所有黑名单吗？')) return;
+  apiPost('/blacklist/clear', {}).then(function(r){
+    if(r.code === 200) { loadBlacklist(); alert('已清空'); }
+    else alert('清空失败: ' + r.message);
+  });
+}
+
+function quickBanIP(ip) {
+  apiPost('/blacklist/add', { type: 'ip', ip: ip, reason: '仪表盘快速封禁' }).then(function(r){
+    if(r.code === 200) { loadBlacklist(); alert('已封禁 ' + ip); }
+    else alert('封禁失败: ' + r.message);
+  });
+}
+
+function quickResetIP(ip) {
+  apiPost('/ratelimit/reset', { type: 'ip', ip: ip }).then(function(r){
+    if(r.code === 200) alert('已重置 ' + ip);
+    else alert('重置失败: ' + r.message);
+  });
+}
+
+// ==================== 白名单 ====================
+function addWhitelist() {
+  var ip = document.getElementById('wl-add-ip').value.trim();
+  var note = document.getElementById('wl-add-note').value.trim() || '手动添加';
+  if(!ip) { showMsg('wl-add-msg', '请输入IP', 'error'); return; }
+
+  apiPost('/whitelist/add', { ip: ip, note: note }).then(function(r){
+    if(r.code === 200) {
+      showMsg('wl-add-msg', '添加成功', 'success');
+      document.getElementById('wl-add-ip').value = '';
+      document.getElementById('wl-add-note').value = '';
+      loadWhitelist();
+    } else {
+      showMsg('wl-add-msg', '添加失败: ' + r.message, 'error');
+    }
+  });
+}
+
+function loadWhitelist() {
+  apiGet('/whitelist').then(function(data){
+    if(!data || data.code !== 200) return;
+    var list = data.data || [];
+    var html = '';
+    if(list.length === 0) {
+      html = '<tr><td colspan="3" style="text-align:center;color:var(--text2)">暂无记录</td></tr>';
+    } else {
+      list.forEach(function(entry){
+        html += '<tr>' +
+          '<td><code style="color:var(--green)">' + esc(entry.IP || entry.ip) + '</code></td>' +
+          '<td>' + esc(entry.Note || entry.note || '') + '</td>' +
+          '<td>' + esc(entry.AddedTime || entry.added_time || '') + '</td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('wl-body').innerHTML = html;
+  });
+}
+
+// ==================== 流量控制 ====================
+function loadTrafficConfig() {
+  apiGet('/config').then(function(data){
+    if(!data || data.code !== 200 || !data.data) return;
+    var tc = data.data.traffic_control || data.data.TrafficControl || {};
+    document.getElementById('tc-enable').checked = tc.enable_rate_limit || tc.EnableRateLimit;
+    document.getElementById('tc-max-rate').value = tc.max_rate_per_conn || tc.MaxRatePerConn || 1024;
+    document.getElementById('tc-burst').value = tc.burst_size || tc.BurstSize || 2048;
+    updateTrafficDisplay();
+  });
+}
+
+function saveTrafficControl() {
+  updateTrafficDisplay();
+  showMsg('tc-msg', '配置已记录，修改需更新配置文件并重启生效', 'info');
+  setTimeout(function(){ showMsg('tc-msg', '', ''); }, 3000);
+}
+
+function updateTrafficDisplay() {
+  var rate = document.getElementById('tc-max-rate').value;
+  var burst = document.getElementById('tc-burst').value;
+  document.getElementById('tc-display-rate').textContent = rate + ' KB/s';
+  document.getElementById('tc-display-burst').textContent = burst + ' KB';
+}
+
+// ==================== 健康检查 ====================
+function loadHealth() {
+  apiGet('/stats/snapshot').then(function(data){
+    if(!data || data.code !== 200) return;
+    var backends = (data.data && data.data.backends) ? data.data.backends : [];
+    var html = '';
+    if(backends.length === 0) {
+      html = '<tr><td colspan="6" style="text-align:center;color:var(--text2)">暂无后端数据</td></tr>';
+    } else {
+      backends.forEach(function(b){
+        var alive = b.IsAlive || b.is_alive;
+        var statusHtml = alive
+          ? '<span class="badge badge-green">正常</span>'
+          : '<span class="badge badge-red">离线</span>';
+        html += '<tr>' +
+          '<td><code>' + esc(b.Addr || b.addr) + '</code></td>' +
+          '<td>' + statusHtml + '</td>' +
+          '<td>' + formatNum(b.TotalConns || b.total_conns || 0) + '</td>' +
+          '<td>' + formatNum(b.ActiveConns || b.active_conns || 0) + '</td>' +
+          '<td style="color:' + ((b.FailCount || b.fail_count) > 0 ? 'var(--red)' : 'var(--text)') + '">' + formatNum(b.FailCount || b.fail_count || 0) + '</td>' +
+          '<td>' + esc(b.LastCheckTime || b.last_check_time || '') + '</td>' +
+        '</tr>';
+      });
+    }
+    document.getElementById('health-body').innerHTML = html;
+  });
+}
+
+// ==================== 日志分析 ====================
+function analyzeLog() {
+  var fileInput = document.getElementById('log-file');
+  var textContent = document.getElementById('log-content').value.trim();
+
+  if(fileInput.files && fileInput.files.length > 0) {
+    var reader = new FileReader();
+    reader.onload = function(e){
+      doAnalyzeLog(e.target.result);
+    };
+    reader.readAsText(fileInput.files[0]);
+  } else if(textContent) {
+    doAnalyzeLog(textContent);
+  } else {
+    showMsg('log-msg', '请选择文件或粘贴日志内容', 'error');
+  }
+}
+
+function doAnalyzeLog(content) {
+  showMsg('log-msg', '分析中...', 'info');
+
+  // 先统计
+  var lines = content.split('\n').filter(function(l){ return l.trim() !== ''; });
+  var uidCounts = {};
+  var stateCounts = {};
+
+  lines.forEach(function(line){
+    var uidMatch = line.match(/UserIdx\s*:\s*(\d+)/);
+    var stateMatch = line.match(/state\s*:\s*(\d+)/);
+    if(uidMatch) { var uid = uidMatch[1]; uidCounts[uid] = (uidCounts[uid]||0)+1; }
+    if(stateMatch) { var st = stateMatch[1]; stateCounts[st] = (stateCounts[st]||0)+1; }
+  });
+
+  // 显示结果
+  var resultHtml = '<div class="alert alert-info">日志共 ' + lines.length + ' 条有效记录</div>';
+
+  // UID统计
+  resultHtml += '<h4 style="margin-bottom:10px">UserIdx 频率统计</h4>';
+  resultHtml += '<div class="table-wrap"><table><thead><tr><th>UserIdx</th><th>出现次数</th><th>频率</th><th>风险等级</th></tr></thead><tbody>';
+
+  var sortedUids = [];
+  for(var u in uidCounts) sortedUids.push({uid: u, count: uidCounts[u]});
+  sortedUids.sort(function(a,b){ return b.count - a.count; });
+
+  sortedUids.forEach(function(item){
+    var freq = (item.count / lines.length * 100).toFixed(1);
+    var risk = item.count >= 10 ? '<span class="badge badge-red">高</span>' : 
+               item.count >= 5 ? '<span class="badge badge-yellow">中</span>' : '<span class="badge badge-green">低</span>';
+    resultHtml += '<tr>' +
+      '<td><code>' + item.uid + '</code></td>' +
+      '<td>' + item.count + '</td>' +
+      '<td>' + freq + '%</td>' +
+      '<td>' + risk + '</td>' +
+    '</tr>';
+  });
+  resultHtml += '</tbody></table></div>';
+
+  // 状态统计
+  resultHtml += '<h4 style="margin:16px 0 10px">State 状态统计</h4>';
+  for(var s in stateCounts) {
+    resultHtml += '<p style="font-size:13px;margin:4px 0">State ' + s + ': <strong>' + stateCounts[s] + '</strong> 次</p>';
+  }
+
+  // 高频警告
+  var highRisk = sortedUids.filter(function(item){ return item.count >= 10; });
+  if(highRisk.length > 0) {
+    resultHtml += '<div class="alert alert-warning" style="margin-top:16px"><strong>警告:</strong> 检测到 ' + highRisk.length + ' 个高频异常 UserIdx</div>';
+  }
+
+  document.getElementById('log-result').innerHTML = resultHtml;
+  document.getElementById('log-result-panel').style.display = 'block';
+  showMsg('log-msg', '分析完成', 'success');
+
+  // API分析封禁
+  apiPost('/analysis/log', { content: content }).then(function(r){
+    if(r.code === 200 && r.data && r.data.blocked_entries && r.data.blocked_entries.length > 0) {
+      resultHtml += '<div class="alert alert-success" style="margin-top:16px">已自动封禁: ' + r.data.blocked_entries.join(', ') + '</div>';
+      document.getElementById('log-result').innerHTML = resultHtml;
+    }
+  });
+}
+
+function quickAnalyze() {
+  var sample = '[2026-08-10 17:11:49]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:12:49]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:13:49]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:14:49]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:15:50]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:15:50]\t [state : 4 , UserIdx : 379]\n' +
+    '[2026-08-10 17:16:50]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:17:50]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:18:50]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:19:50]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:20:51]\t [state : 4 , UserIdx : 343]\n' +
+    '[2026-08-10 17:21:51]\t [state : 4 , UserIdx : 386]\n' +
+    '[2026-08-10 17:22:51]\t [state : 4 , UserIdx : 386]\n' +
+    '[2026-08-10 17:23:51]\t [state : 4 , UserIdx : 386]\n' +
+    '[2026-08-10 17:24:51]\t [state : 4 , UserIdx : 386]\n' +
+    '[2026-08-10 17:25:51]\t [state : 4 , UserIdx : 386]\n' +
+    '[2026-08-10 17:26:51]\t [state : 4 , UserIdx : 386]\n';
+  document.getElementById('log-content').value = sample;
+  doAnalyzeLog(sample);
+}
+
+// ==================== 配置 ====================
+function loadConfig() {
+  apiGet('/config').then(function(data){
+    if(data && data.code === 200) {
+      document.getElementById('config-json').value = JSON.stringify(data.data, null, 2);
+    } else {
+      document.getElementById('config-json').value = '加载失败: ' + (data ? data.message : '无响应');
+    }
+  });
+}
+
+function reloadConfig() {
+  apiPost('/config/reload', {}).then(function(r){
+    if(r.code === 200) alert('配置已重新加载');
+    else alert('加载失败: ' + r.message);
+  });
+}
+
+// ==================== 工具函数 ====================
+function formatNum(n) {
+  if(n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if(n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function esc(s) {
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showMsg(elId, msg, type) {
+  var el = document.getElementById(elId);
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'msg ' + (type || '');
+}
+</script>
+</body>
+</html>

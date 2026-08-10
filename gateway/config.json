@@ -1,0 +1,52 @@
+{
+  "forward_rules": [
+    {
+      "listen_addr": "0.0.0.0:9000",
+      "backend_addrs": [
+        "127.0.0.1:8000"
+      ],
+      "lb_strategy": "round_robin",
+      "timeout": 30
+    }
+  ],
+  "rate_limit": {
+    "enable_ip_limit": true,
+    "ip_max_conn_per_sec": 10,
+    "ip_max_login_per_sec": 3,
+    "enable_uid_limit": true,
+    "uid_max_conn_per_sec": 5,
+    "uid_max_login_per_sec": 2,
+    "enable_combined_limit": true,
+    "combined_max_conn_per_sec": 3
+  },
+  "blacklist": {
+    "enable_auto_learn": true,
+    "auto_learn_threshold": 10,
+    "auto_learn_window": 60,
+    "ban_duration": 3600,
+    "persist_file": "blacklist.json"
+  },
+  "traffic_control": {
+    "enable_rate_limit": true,
+    "max_rate_per_conn": 1024,
+    "burst_size": 2048
+  },
+  "monitor": {
+    "enable": true,
+    "refresh_interval": 10,
+    "log_output": true
+  },
+  "log": {
+    "level": "info",
+    "file_path": "logs/gateway.log",
+    "console_output": true,
+    "max_size": 100,
+    "max_age": 30,
+    "max_backups": 10
+  },
+  "api": {
+    "enable": true,
+    "listen_addr": "0.0.0.0:9999",
+    "auth_token": "admin-token-change-me"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "ip_blacklist": [
+    {
+      "ip": "UserIdx:343",
+      "uid": 0,
+      "combined": "",
+      "reason": "日志分析: 60秒内出现10次异常登录",
+      "added_time": "2026-08-10T19:25:21.4202017+08:00",
+      "expire_time": "2026-08-10T20:25:21.4202017+08:00",
+      "source": "auto_analysis"
+    }
+  ],
+  "uid_blacklist": [],
+  "combined_blacklist": [],
+  "ip_whitelist": []
+}

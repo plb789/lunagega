@@ -1,0 +1,484 @@
+============================================================
+  企业级网关防护程序 - 功能说明与使用手册
+  Gateway  v1.0.0
+============================================================
+
+一、项目简介
+------------------------------------------------------------
+本程序是一款基于 Go 语言开发的企业级 TCP 网关防护系统，针对
+AG 游戏服务器（详见 E:\lunagega\Agent 源码分析）设计。
+
+核心目标：在 AG 后端服务器奔溃之前，通过协议层嗅探主动检测
+异常连接模式并拦截恶意请求，保护后端稳定运行。
+
+架构位置：
+  客户端 <---> 网关(本程序) <---> AG服务器 / MapServer
+
+
+二、核心功能模块
+------------------------------------------------------------
+
+  1. 端口无损转发
+     - TCP 双工透明转发，客户端和后端无感知
+     - 支持多后端负载均衡
+       round_robin(轮询) / least_conn(最少连接) / random(随机)
+     - 自动摘除宕机后端，恢复后自动重新上线
+     - 支持多组转发规则同时运行
+
+  2. AG 协议解析与嗅探
+     - 实时解析 AG 协议的 MSGROOT + MSGLogin 二进制包
+     - 自动从登录包中提取 UserID 和 UserIdx
+     - 嗅探后端返回的 LOGIN_NACK / LOGIN_ACK / 心跳包
+     - 这些数据是奔溃预警的核心依据
+
+  3. 多层频率限制(独立开关)
+     +------------------+------------------------------------+
+     | 限制层           | 说明                               |
+     +------------------+------------------------------------+
+     | IP 频率限制      | 限制每个 IP 的 连接/登录 频率       |
+     | UID 频率限制     | 限制每个 UserIdx 的 连接/登录 频率  |
+     | 组合频率限制     | IP+UID 联合检查，双重防护           |
+     +------------------+------------------------------------+
+
+  4. 智能黑名单
+     - 自动学习：达到阈值自动加入黑名单
+     - 支持三个维度封禁：按IP、按UserIdx、按IP+UserIdx组合
+     - 可设临时封禁（到期自动解封）或永久封禁
+     - 持久化存储到 blacklist.json，重启不丢失
+     - 启动时自动分析 LoginError.txt 并封禁高频 UserIdx
+
+  5. IP 白名单
+     - 白名单 IP 绕过所有频率限制和黑名单检查
+     - 适合运维 IP、内网管理 IP 等可信来源
+
+  6. 流量限速
+     - 令牌桶算法实现每连接独立限速
+     - 可设置基础速率（KB/s）和突发流量大小（KB）
+
+  7. 后端健康检查
+     - 定期 TCP 连接探测后端可用性
+     - 自动摘除不可用后端，恢复后重新上线
+
+  8. 奔溃预警(新增)
+     - 基于 AG 协议层嗅探数据，计算四个健康等级：
+       正常 → 降级 → 危险 → 宕机
+     - 登录失败率 >= 30%：降级告警
+     - 登录失败率 >= 50% 或 所有后端均危险：拒绝新连接
+     - 配合频率限制形成"预防+拦截"双层防护
+
+  9. Web 可视化仪表盘
+     - 单文件 HTML 内嵌于 Go 二进制，无需额外部署
+     - 实时仪表盘 + 频率限制配置 + 黑白名单管理
+     + 流量控制 + 健康检查 + 日志分析 + 系统配置
+     - 深色主题，5 秒自动刷新
+
+  10. REST API 管理接口(18个端点)
+      - 全部接口见第七节
+
+  11. 日志系统
+      - 四级日志：debug / info / warn / error
+      - 自动日志轮转（按大小、天数、文件数）
+      - 控制台 + 文件双输出
+
+
+三、快速开始
+------------------------------------------------------------
+
+  1. 启动程序：
+     cd e:\lunagega\gateway
+     .\gateway.exe
+
+  2. 首次运行会自动生成 config.json 默认配置文件，
+     根据实际环境修改转发规则：
+
+     {
+       "forward_rules": [
+         {
+           "listen_addr": "0.0.0.0:9000",
+           "backend_addrs": ["192.168.1.100:5000"],
+           "lb_strategy": "round_robin",
+           "timeout": 30
+         }
+       ]
+     }
+
+  3. 修改配置后重启程序，或通过 Web 页面热重载。
+
+  4. 打开浏览器访问 Web 管理界面：
+     http://localhost:9999
+
+  5. 默认 API Token：admin-token-change-me
+     （启动后请立即修改！）
+
+
+四、命令行参数
+------------------------------------------------------------
+
+  参数              说明                      示例
+  ------------------------------------------------------------
+  -config           指定配置文件路径           -config=prod.json
+  -log-level        覆盖日志级别               -log-level=debug
+  -api-port         覆盖 API 监听端口          -api-port=8888
+  -version          显示版本信息并退出         -version
+
+  控制台命令（运行时输入）：
+  stats          查看当前统计信息
+  help           显示帮助
+  quit / exit    退出程序
+
+
+五、配置文件详解(config.json)
+------------------------------------------------------------
+
+  完整配置示例：
+
+{
+  "forward_rules": [
+    {
+      "listen_addr": "0.0.0.0:9000",
+      "backend_addrs": ["127.0.0.1:8080", "127.0.0.1:8081"],
+      "lb_strategy": "round_robin",
+      "timeout": 30
+    }
+  ],
+  "rate_limit": {
+    "enable_ip_limit": true,
+    "ip_max_conn_per_sec": 10,
+    "ip_max_login_per_sec": 3,
+    "enable_uid_limit": true,
+    "uid_max_conn_per_sec": 5,
+    "uid_max_login_per_sec": 2,
+    "enable_combined_limit": true,
+    "combined_max_conn_per_sec": 3
+  },
+  "blacklist": {
+    "enable_auto_learn": true,
+    "auto_learn_threshold": 10,
+    "auto_learn_window": 60,
+    "ban_duration": 3600,
+    "persist_file": "blacklist.json"
+  },
+  "traffic_control": {
+    "enable_rate_limit": true,
+    "max_rate_per_conn": 1024,
+    "burst_size": 2048
+  },
+  "monitor": {
+    "enable": true,
+    "refresh_interval": 10,
+    "log_output": true
+  },
+  "log": {
+    "level": "info",
+    "file_path": "logs/gateway.log",
+    "console_output": true,
+    "max_size": 100,
+    "max_age": 30,
+    "max_backups": 10
+  },
+  "api": {
+    "enable": true,
+    "listen_addr": "0.0.0.0:9999",
+    "auth_token": "admin-token-change-me"
+  }
+}
+
+
+  配置项说明：
+
+  [forward_rules] -- 转发规则组
+    listen_addr      网关监听地址（客户端连接此地址）
+    backend_addrs    后端服务器地址列表
+    lb_strategy      负载均衡策略
+    timeout          读写超时（秒）
+
+  [rate_limit] -- 频率限制
+    enable_ip_limit        启用 IP 频率限制
+    ip_max_conn_per_sec    每 IP 每秒最大连接数（默认10）
+    ip_max_login_per_sec   每 IP 每秒最大登录数（默认3）
+    enable_uid_limit       启用 UID 频率限制
+    uid_max_conn_per_sec   每 UID 每秒最大连接数（默认5）
+    uid_max_login_per_sec  每 UID 每秒最大登录数（默认2）
+    enable_combined_limit  启用组合频率限制
+    combined_max_conn_per_sec  组合限制每秒最大连接数（默认3）
+
+  [blacklist] -- 黑名单
+    enable_auto_learn     启用自动学习（默认开启）
+    auto_learn_threshold  触发自动封禁的拒绝次数（默认10）
+    auto_learn_window     统计时间窗口秒数（默认60）
+    ban_duration          封禁时长秒数，0=永久（默认3600）
+    persist_file          黑名单持久化文件
+
+  [traffic_control] -- 流量控制
+    enable_rate_limit     启用流量限速
+    max_rate_per_conn     每连接最大速率 KB/s（默认1024）
+    burst_size            突发流量大小 KB（默认2048）
+
+  [log] -- 日志
+    level            日志级别
+    file_path        日志文件路径
+    console_output   控制台输出
+    max_size         单文件最大 MB
+    max_age          保留天数
+    max_backups      保留文件数
+
+  [api] -- API 管理接口
+    enable            启用 API
+    listen_addr       API 监听地址
+    auth_token        API 认证 Token
+
+
+六、Web 管理仪表盘
+------------------------------------------------------------
+
+  访问地址：http://localhost:9999
+
+  页面导航：
+
+  ┌─────────────────────────────────────────────────┐
+  │  仪表盘         │  运行时间、连接/拒绝统计       │
+  │                 │  流量速率、端口转发状态         │
+  │                 │  后端健康状态（奔溃预警）       │
+  │                 │  活跃 IP Top20、攻击者排行      │
+  │                 │  一键封禁/重置操作              │
+  ├─────────────────┼─────────────────────────────────┤
+  │  频率限制       │  开关 IP/UID/组合三层限制       │
+  │                 │  实时调整阈值                   │
+  │                 │  重置指定 IP 或 UID 频率计数    │
+  ├─────────────────┼─────────────────────────────────┤
+  │  黑名单         │  查看 IP/UID/组合 封禁列表      │
+  │                 │  手动添加三个维度的封禁         │
+  │                 │  一键移除/清空                  │
+  ├─────────────────┼─────────────────────────────────┤
+  │  白名单         │  添加/查看 IP 白名单            │
+  ├─────────────────┼─────────────────────────────────┤
+  │  流量控制       │  开关流量限速                   │
+  │                 │  调整令牌桶参数                 │
+  ├─────────────────┼─────────────────────────────────┤
+  │  健康检查       │  查看所有后端服务器状态         │
+  │                 │  连接数和失败次数               │
+  ├─────────────────┼─────────────────────────────────┤
+  │  日志分析       │  上传或粘贴 LoginError.txt      │
+  │                 │  自动分析 UserIdx 频率          │
+  │                 │  一键封禁高频 UserIdx           │
+  ├─────────────────┼─────────────────────────────────┤
+  │  系统配置       │  查看完整 JSON 配置             │
+  │                 │  重新加载配置                   │
+  └─────────────────┴─────────────────────────────────┘
+
+  关键交互：
+  - 仪表盘每 5 秒自动刷新
+  - 活跃 IP 列表中每个条目有"封禁"和"重置"按钮
+  - 侧边栏黑名单菜单旁有红色徽标显示当前封禁数量
+  - 页面顶部绿色/红色指示灯显示后端连接状态
+
+
+七、REST API 接口列表 (共18个)
+------------------------------------------------------------
+
+  所有需要认证的接口在 URL 后加 ?token=你的Token
+
+  [状态与统计]
+  GET  /api/status             全局状态（运行时间、连接统计）
+  GET  /api/stats              统计快照
+  GET  /api/stats/snapshot     详细统计快照
+  GET  /api/health             健康检查(无需认证)
+
+  [黑名单管理]
+  GET  /api/blacklist          查看黑名单列表
+  POST /api/blacklist/add      添加黑名单
+  POST /api/blacklist/remove   移除黑名单
+  POST /api/blacklist/clear    清空黑名单
+
+  [白名单管理]
+  GET  /api/whitelist          查看白名单列表
+  POST /api/whitelist/add      添加白名单
+
+  [频率限制]
+  GET  /api/ratelimit/active   查看活跃 IP 频率
+  POST /api/ratelimit/reset    重置指定 IP/UID 频率计数
+
+  [配置管理]
+  GET  /api/config             查看配置
+  POST /api/config/reload      重新加载配置
+
+  [日志分析]
+  GET  /api/analysis/ip        IP 分析
+  GET  /api/analysis/uid       UID 分析
+  GET  /api/analysis/top-attackers  攻击者排行
+  POST /api/analysis/log       上传日志文件分析
+
+  [协议层统计（新增）]
+  GET  /api/protocol/stats     后端协议层统计数据
+
+
+  常用 curl 示例：
+
+  # 查看全局状态
+  curl "http://localhost:9999/api/status?token=admin-token-change-me"
+
+  # 添加 IP 黑名单
+  curl -X POST "http://localhost:9999/api/blacklist/add?token=admin-token-change-me" \
+    -H "Content-Type: application/json" \
+    -d '{"type":"ip","ip":"192.168.1.100","reason":"高频连接攻击"}'
+
+  # 添加 UID 黑名单
+  curl -X POST "http://localhost:9999/api/blacklist/add?token=admin-token-change-me" \
+    -H "Content-Type: application/json" \
+    -d '{"type":"uid","uid":343,"reason":"高频错误登录"}'
+
+  # 查看协议层统计（奔溃预警）
+  curl "http://localhost:9999/api/protocol/stats?token=admin-token-change-me"
+
+  # 重新加载配置
+  curl -X POST "http://localhost:9999/api/config/reload?token=admin-token-change-me"
+
+
+八、AG 协议防护详解
+------------------------------------------------------------
+
+  8.1 协议包格式
+
+      AG 消息头 MSGROOT（10 字节）：
+      偏移 0-1:   Category    消息类别（WORD）
+      偏移 2-3:   Protocol    协议号（WORD）
+      偏移 4:     CheckSum    序列校验和（BYTE）
+      偏移 5:     Code        加密 CRC 字符（BYTE）
+      偏移 6-9:   dwObjectID  对象 ID / 账号 ID（DWORD）
+
+      登录包 MSGLogin（20 字节）：
+      偏移 0-9:   MSGROOT
+      偏移 10-13: DistAuthKey         认证密钥
+      偏移 14-17: DistConnectionIndex 连接索引（即 UserIdx！）
+      偏移 18:    UserLevel           用户等级
+      偏移 19:    Reserved            保留
+
+  8.2 奔溃预警机制
+
+      网关在转发过程中同时嗅探两类数据：
+
+      A. 客户端 -> 后端：
+         - 解析登录包，提取 UserIdx 做精准频率限制
+         - 统计每个后端的登录请求数
+
+      B. 后端 -> 客户端：
+         - 检测 LOGIN_NACK（登录失败应答）
+         - 检测 ConnectionCheck（心跳包）
+         - 检测连接断开会话超时
+
+      根据这些数据计算后端健康等级：
+
+      正常    - 登录失败率 < 30%
+      降级    - 登录失败率 >= 30%
+      危险    - 登录失败率 >= 50%
+      宕机    - 持续无响应
+
+  8.3 防护策略
+
+      当后端处于"危险"状态时，网关主动拒绝新连接，
+      避免新的请求继续压垮已经在崩溃边缘的后端服务器。
+      等后端恢复后，网关自动恢复新连接接受。
+
+
+九、文件结构
+------------------------------------------------------------
+
+  gateway/
+  ├── main.go              主入口
+  ├── go.mod                Go 模块定义
+  ├── gateway.exe           编译产物
+  ├── config.json           配置文件（自动生成）
+  ├── blacklist.json        黑名单持久化数据
+  ├── config/
+  │   └── config.go         配置管理模块
+  ├── logger/
+  │   └── logger.go         日志系统模块
+  ├── limiter/
+  │   └── limiter.go        多层频率限制模块
+  ├── blacklist/
+  │   └── blacklist.go      智能黑名单模块
+  ├── monitor/
+  │   └── monitor.go        监控统计模块
+  ├── proxy/
+  │   └── proxy.go          代理转发模块（含协议嗅探）
+  ├── protocol/
+  │   └── protocol.go       AG 协议解析模块
+  ├── api/
+  │   └── api.go            REST API 模块
+  ├── web/
+  │   ├── web.go            HTML 嵌入模块
+  │   └── dashboard.html    Web 仪表盘
+  └── logs/
+      └── gateway.log       运行日志
+
+
+十、详细设计说明
+------------------------------------------------------------
+
+  10.1 协议嗅探获取 UserIdx 的链路
+
+      网关处于客户端和后端之间，所有 TCP 数据流经过网关。
+      客户端建立连接后发送的第一个包即 AG 登录包。
+
+      网关读取前 20 字节，按 MSGLogin 二进制格式解析：
+      - 偏移 6-9  ：dwObjectID（账号 ID）
+      - 偏移 14-17：DistConnectionIndex（即 UserIdx）
+
+      这个 UserIdx 值就是 LoginError.txt 中 "state : 4"
+      对应的 UserIdx，用于精准频率限制和自动封禁。
+
+  10.2 UserIdx 自动封禁不影响正常用户的原理
+
+      频率限制是按 IP + UserIdx 两个维度独立计算的：
+      - IP 限制：同一 IP 的连接频率 → 拦截 DDoS
+      - UserIdx 限制：同一 UserIdx 的登录频率 → 拦截暴力登录
+
+      正常用户：
+      - 单个 IP 每秒只发起 1~2 个连接和登录
+      - 远低于默认阈值（连接 10/s，登录 3/s）
+      - 不会被拦截
+
+      恶意用户（LoginError.txt 中的 UserIdx）：
+      - 同一个 UserIdx 在短时间内连续出现 10+ 次
+      - 触发自动学习黑名单
+      - 被永久或临时封禁
+      - 封禁的是该 UserIdx，不影响同 IP 下的正常用户
+
+  10.3 关键常量（启动时打印）
+      这些常量可在启动输出和控制台中查看。
+
+十一、使用场景
+------------------------------------------------------------
+
+  场景一：正常运维
+    1. 启动网关
+    2. 客户端连接网关监听端口
+    3. 网关透明转发到后端 AG 服务器
+    4. 通过 Web 仪表盘实时查看状态
+    5. 发现异常时手动封禁 IP 或 UserIdx
+
+  场景二：奔溃预警
+    1. 网关检测到后端 LOGIN_NACK 频率上升
+    2. 仪表盘后端健康状态变为"降级"或"危险"
+    3. 网关自动拒绝新连接，保护后端
+    4. 运维人员排查后端原因后恢复
+
+  场景三：日志分析
+    1. 后端奔溃后产生 LoginError.txt
+    2. 在 Web 仪表盘上传日志文件
+    3. 系统自动分析高频 UserIdx
+    4. 一键封禁或重启时自动封禁
+
+  场景四：DDoS 攻击防护
+    1. 攻击者从单 IP 高频连接
+    2. IP 频率限制拦截
+    3. 达到自动学习阈值后加入黑名单
+    4. 后续所有来自该 IP 的连接被直接拒绝
+
+
+============================================================
+  版本：v1.0.0
+  更新日期：2026-08-10
+  编码：GBK（所有源码文件）
+  语言：Go 1.21+
+============================================================
