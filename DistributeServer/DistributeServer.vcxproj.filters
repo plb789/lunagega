@@ -1,0 +1,352 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{b369016e-4d7b-4982-9740-7a89358e653b}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ChatRoomMgr">
+      <UniqueIdentifier>{0c20ce84-1ebf-461f-b192-839b2999bd2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module">
+      <UniqueIdentifier>{962665b6-4f1a-42b6-8424-ce8f678ae87c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{1b0f9f10-84e5-488a-933e-6479cb956dc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\TargetList">
+      <UniqueIdentifier>{bd3a50c4-ed14-4cff-a118-fc39fdb07b66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\AES">
+      <UniqueIdentifier>{171e493b-e40b-4076-b4a8-2e880b669f1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineLib">
+      <UniqueIdentifier>{44f1dbb3-1e29-4c95-84ba-f582b63b3ba9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineLib\4DyuchiGRX_common">
+      <UniqueIdentifier>{ae9ed8ba-d413-47cf-9e93-a85e3d473279}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineLib\4DyuchiGXGFunc">
+      <UniqueIdentifier>{0e830bc8-218e-4a8b-966f-30585a3a27c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{7d176eb4-7aad-4cf4-a6f6-98af1e84a600}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="hseos">
+      <UniqueIdentifier>{982c26ce-662b-4be2-becb-7bd8a1f0ccea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hseos\Debug">
+      <UniqueIdentifier>{4ff81a17-a569-42ea-99f3-8c158960d4d3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BillConnector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DistributeDBMsgParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DistributeNetworkMsgParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MHTimeManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UserManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UserTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChatRoomMgr.cpp">
+      <Filter>Source Files\ChatRoomMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\BootManager.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\CommonDBMsgParser.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\Console.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\DataBase.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\MHFile.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\MiniDumper.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\Network.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ServerModule\ServerListManager.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\AESFile.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\CommonCalcFunc.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\CommonGameFunc.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\vector.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\TargetList\TargetData.cpp">
+      <Filter>Common\TargetList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\TargetList\TargetList.cpp">
+      <Filter>Common\TargetList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\TargetList\TargetListIterator.cpp">
+      <Filter>Common\TargetList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Header\Aes\aes.cpp">
+      <Filter>Common\AES</Filter>
+    </ClCompile>
+    <ClCompile Include="..\hseos\Debug\SHDebug.cpp">
+      <Filter>hseos\Debug</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BillConnector.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypt.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DistributeDBMsgParser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DistributeNetworkMsgParser.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MHTimeManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerSystem.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatRoomMgr.h">
+      <Filter>Source Files\ChatRoomMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\BootManager.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\CommonDBMsgParser.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\Console.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\console_type.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\DataBase.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\DB.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\DBThreadInterface.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\define.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\iconsole.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\iconsole_guid.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\inetwork.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\MHFile.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\MiniDumper.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\net_define.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\Network.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\network_guid.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\Noncopyable.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\ServerListManager.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\TConsole_Def.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\TConsole_Guids.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\TConsole_Interface.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ServerModule\typedef.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\AddableInfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\AESFile.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\ClientGameDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\ClientGameStruct.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonCalcFunc.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonGameDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonGameFunc.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonGameStruct.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CommonStruct.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Pool.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Protocol.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\ServerGameDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\ServerGameStruct.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\vector.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\TargetList\TargetData.h">
+      <Filter>Common\TargetList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\TargetList\TargetList.h">
+      <Filter>Common\TargetList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\TargetList\TargetListIterator.h">
+      <Filter>Common\TargetList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Aes\aes.h">
+      <Filter>Common\AES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\FileStorage_typedef.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\GXSCHEDULE_PROC_MSG.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IAudio.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IAudio_GUID.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IExecutive.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IExecutive_GUID.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IFileStorage.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IFileStorage_GUID.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IGeometry.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IGeometry_GUID.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IRenderer.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\IRenderer_GUID.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\mesh_flag.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\motion_flag.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\StdAfx.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGRX_common\typedef.h">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGXGFunc\global.h">
+      <Filter>EngineLib\4DyuchiGXGFunc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\4DyuchiGXGFunc\type.h">
+      <Filter>EngineLib\4DyuchiGXGFunc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hseos\Debug\SHDebug.h">
+      <Filter>hseos\Debug</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\4DyuchiGRX_common\math.inl">
+      <Filter>EngineLib\4DyuchiGRX_common</Filter>
+    </None>
+  </ItemGroup>
+</Project>
