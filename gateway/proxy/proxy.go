@@ -365,6 +365,15 @@ func (ps *ProxyServer) copyAndSniffBackend(dst net.Conn, src net.Conn, rule conf
 
 // 嗅探后端响应
 func (ps *ProxyServer) sniffBackendResponse(data []byte, rule config.ForwardRule, backendIdx int) {
+	// 调试日志: 先打印所有后端回包信息(Info级别确保一定能看到)
+	if len(data) >= 4 {
+		cat := uint16(data[0]) | uint16(data[1])<<8
+		proto := uint16(data[2]) | uint16(data[3])<<8
+		logger.Info("后端响应: Cat=%d Proto=%d len=%d 规则=%s 后端索引=%d", cat, proto, len(data), rule.ListenAddr, backendIdx)
+	} else {
+		logger.Info("后端响应: 数据不足4字节 len=%d 规则=%s 后端索引=%d", len(data), rule.ListenAddr, backendIdx)
+	}
+
 	if len(data) < 4 || backendIdx < 0 {
 		return
 	}
